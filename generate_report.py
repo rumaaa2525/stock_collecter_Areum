@@ -10,7 +10,7 @@ import matplotlib.font_manager as fm  # 폰트 관리를 위해 추가
 # 한글 폰트 설정 (프로젝트 내 폰트 파일 직접 연동)
 # ==========================================
 # GitHub 저장소에 업로드한 폰트 파일 경로 지정 (예시: 저장소 루트에 있는 경우)
-font_path = "NanumGothicOTF.otf"  # 실제 업로드하신 폰트 파일명으로 수정하세요! (예: fonts/NanumGothic.otf 등)
+font_path = "NanumGothic.otf" 
 
 if os.path.exists(font_path):
     # 폰트 파일을 직접 등록
