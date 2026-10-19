@@ -9,8 +9,8 @@ import matplotlib.font_manager as fm  # 폰트 관리를 위해 추가
 # ==========================================
 # 한글 폰트 설정 (프로젝트 내 폰트 파일 직접 연동)
 # ==========================================
-# GitHub 저장소에 업로드한 폰트 파일 경로 지정 (예시: 저장소 루트에 있는 경우)
-font_path = "NanumGothic.otf" 
+# GitHub 저장소에 업로드한 폰트 파일 경로 지정 (필요시 경로 수정 가능)
+font_path = "NanumGothic.otf"  
 
 if os.path.exists(font_path):
     # 폰트 파일을 직접 등록
@@ -19,7 +19,7 @@ if os.path.exists(font_path):
     plt.rcParams['font.family'] = font_name
     print(f"[정보] 커스텀 폰트 로드 성공: {font_name} ({font_path})")
 else:
-    # 폰트 파일이 없을 경우 시스템 기본 폰트(나눔고딕 등)로 폴백 시도
+    # 폰트 파일이 없을 경우 시스템 기본 폰트로 폴백 시도
     print(f"[경고] 지정한 경로에 폰트 파일이 없습니다({font_path}). 기본 폰트를 사용합니다.")
     plt.rcParams['font.family'] = 'NanumGothic'
 
@@ -61,16 +61,24 @@ def generate_daily_report():
         prices = pd.to_numeric(df[price_col].astype(str).str.replace(",", ""), errors="coerce")
         ax.bar(df[name_col], prices, color="skyblue")
         
-        # 폰트 객체가 있으면 명시적으로 전달, 없으면 기본 설정 적용
+        # 제목, Y축, X축 폰트 명시적 적용
         if os.path.exists(font_path):
             ax.set_title(f"[{trade_date}] 전자장비와기기 주요 종목 현재가 현황", fontsize=14, fontproperties=font_prop)
             ax.set_ylabel("현재가 (원)", fontsize=12, fontproperties=font_prop)
-            # x축 라벨 등에도 폰트가 필요할 경우 fontproperties 적용 가능
+            
+            # X축 종목명(틱)에도 fontproperties를 직접 지정하여 깨짐 방지
+            plt.xticks(
+                ticks=range(len(df[name_col])), 
+                labels=df[name_col], 
+                rotation=45, 
+                ha="right", 
+                fontproperties=font_prop
+            )
         else:
             ax.set_title(f"[{trade_date}] 전자장비와기기 주요 종목 현재가 현황", fontsize=14)
             ax.set_ylabel("현재가 (원)", fontsize=12)
+            plt.xticks(rotation=45, ha="right")
             
-        plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
 
     chart_path = report_dir / f"chart_{trade_date}.png"
