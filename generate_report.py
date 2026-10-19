@@ -39,6 +39,7 @@ def generate_daily_report():
     # 컬럼명 유연하게 매칭
     price_col = "현재가(종가)" if "현재가(종가)" in df.columns else "현재가"
     name_col = "종목명" if "종목명" in df.columns else df.columns[0]
+    change_col = next((c for c in ["등락률(%)", "등락률"] if c in df.columns), None)
 
     if name_col in df.columns and price_col in df.columns:
         # 데이터 정제 (숫자형 변환)
@@ -95,7 +96,37 @@ def generate_daily_report():
         print(f"상하위 비교 차트 생성 완료: {top_bottom_chart_path}")
 
         # ==========================================
-        # 3. 트리맵 (Treemap) 차트 생성
+        # 3. 등락률(%) 기준 바 차트 생성 (추가)
+        # ==========================================
+        change_filename = None
+        if change_col:
+            fig, ax = plt.subplots(figsize=(10, 5))
+            
+            # 등락률 데이터 정제 (문자열 제거 및 숫자형 변환)
+            df['cleaned_change'] = pd.to_numeric(
+                df[change_col].astype(str).str.replace("%", "").str.replace("+", "").str.replace(",", ""), 
+                errors="coerce"
+            )
+            df_change = df.dropna(subset=['cleaned_change']).sort_values(by='cleaned_change', ascending=True)
+            
+            # 상승(빨간색 계열), 하락(파란색 계열) 색상 자동 지정
+            colors = ['#d9534f' if x > 0 else ('#5bc0de' if x < 0 else '#999999') for x in df_change['cleaned_change']]
+            
+            ax.barh(df_change[name_col], df_change['cleaned_change'], color=colors)
+            ax.axvline(0, color='gray', linestyle='--', linewidth=0.8) # 기준선(0%) 표시
+            
+            ax.set_title(f"[{trade_date}] 종목별 등락률(%) 현황", fontsize=14)
+            ax.set_xlabel("등락률 (%)", fontsize=12)
+            
+            plt.tight_layout()
+            change_filename = f"change_chart_{trade_date}.png"
+            change_path = report_dir / change_filename
+            fig.savefig(change_path, dpi=150)
+            plt.close(fig)
+            print(f"등락률 차트 생성 완료: {change_path}")
+
+        # ==========================================
+        # 4. 트리맵 (Treemap) 차트 생성
         # ==========================================
         fig, ax = plt.subplots(figsize=(10, 6))
         try:
@@ -120,7 +151,7 @@ def generate_daily_report():
         print(f"트리맵 차트 생성 완료: {treemap_path}")
 
     # ==========================================
-    # 4. 마크다운 대시보드 리포트 작성
+    # 5. 마크다운 대시보드 리포트 작성
     # ==========================================
     md_path = report_dir / f"report_{trade_date}.md"
     
@@ -136,7 +167,11 @@ def generate_daily_report():
     md_content += f"### 2. 상하위 집중 비교 분석 (Top / Bottom)\n"
     md_content += f"![상하위 비교 차트](./{top_bottom_filename})\n\n"
     
-    md_content += f"### 3. 종목별 규모 비중 (트리맵)\n"
+    if change_col and change_filename:
+        md_content += f"### 3. 종목별 등락률(%) 현황\n"
+        md_content += f"![등락률 차트](./{change_filename})\n\n"
+        
+    md_content += f"### 4. 종목별 규모 비중 (트리맵)\n"
     md_content += f"![트리맵 차트](./{treemap_filename})\n\n"
     
     md_content += "---\n\n"
