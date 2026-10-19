@@ -10,7 +10,6 @@ on:
 jobs:
   run-report:
     runs-on: ubuntu-latest
-    # 수집 워크플로가 '성공(success)'했을 때만 실행됨
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v4
@@ -19,20 +18,33 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: pip install -r requirements.txt pandas matplotlib tabulate
+      - run: pip install -r requirements.txt pandas matplotlib tabulate plotly itables
 
-      # --- [추가 완료] 한글 깨짐 해결을 위한 나눔 폰트 설치 ---
+      # 한글 깨짐 해결을 위한 나눔 폰트 설치
       - name: Install Korean Font
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-nanum
           sudo fc-cache -fv
-          # matplotlib의 폰트 캐시를 지워서 새로 설치된 폰트를 인식하게 함
           rm -rf ~/.cache/matplotlib
-      # --------------------------------------------------
 
-      # 분석 및 보고서 생성 스크립트 실행
+      # 기존 파이썬 스크립트 실행
       - run: python generate_report.py
+
+      # --- 📌 [추가된 부분] Quarto 설치, 렌더링 및 GitHub Pages 배포 ---
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render Quarto Dashboard
+        run: quarto render report.qmd
+
+      - name: Deploy to GitHub Pages
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # -------------------------------------------------------------
 
       # 생성된 마크다운 보고서와 그래프 이미지를 저장소에 자동 커밋
       - name: Commit generated report and charts
@@ -40,5 +52,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/
-          git commit -m "Auto-generate daily report and charts with Korean font: $(date +'%Y-%m-%d')" || exit 0
+          git commit -m "Auto-generate daily report and charts: $(date +'%Y-%m-%d')" || exit 0
           git push
