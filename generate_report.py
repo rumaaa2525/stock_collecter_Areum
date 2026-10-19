@@ -86,7 +86,7 @@ def generate_daily_report():
         # ==========================================
         # 2. 상하위 집중 비교 차트 (Top N / Bottom N) 생성
         # ==========================================
-        n = min(5, len(df_clean)) # 종목 수가 5개 미만일 경우 대비
+        n = min(5, len(df_clean))
         top_n = df_clean.head(n)
         bottom_n = df_clean.tail(n).sort_values(by='cleaned_price', ascending=True)
 
@@ -95,13 +95,21 @@ def generate_daily_report():
         # 상위 종목 가로 바 그래프
         axes[0].barh(top_n[name_col], top_n['cleaned_price'], color="#4C72B0")
         axes[0].set_title(f"현재가 상위 Top {n} 종목", fontsize=13, fontproperties=font_prop if os.path.exists(font_path) else None)
-        axes[0].set_xlabel("현재가 (원)", fontsize=11)
+        axes[0].set_xlabel("현재가 (원)", fontsize=11, fontproperties=font_prop if os.path.exists(font_path) else None)
         axes[0].invert_yaxis()
 
         # 하위 종목 가로 바 그래프
         axes[1].barh(bottom_n[name_col], bottom_n['cleaned_price'], color="#DD8452")
         axes[1].set_title(f"현재가 하위 Bottom {n} 종목", fontsize=13, fontproperties=font_prop if os.path.exists(font_path) else None)
-        axes[1].set_xlabel("현재가 (원)", fontsize=11)
+        axes[1].set_xlabel("현재가 (원)", fontsize=11, fontproperties=font_prop if os.path.exists(font_path) else None)
+
+        # 💡 [핵심 수정] 가로 바 그래프의 Y축(종목명)에 폰트 명시적 적용
+        if os.path.exists(font_path):
+            for ax in axes:
+                for label in ax.get_yticklabels():
+                    label.set_fontproperties(font_prop)
+                for label in ax.get_xticklabels():
+                    label.set_fontproperties(font_prop)
 
         plt.tight_layout()
         top_bottom_chart_path = report_dir / f"top_bottom_chart_{trade_date}.png"
@@ -114,7 +122,6 @@ def generate_daily_report():
         # ==========================================
         fig, ax = plt.subplots(figsize=(10, 6))
         try:
-            # squarify를 이용한 트리맵 시각화 (현재가 기준 면적 배분)
             labels = [f"{row[name_col]}\n({row['cleaned_price']:,}원)" for _, row in df_clean.iterrows()]
             squarify.plot(
                 sizes=df_clean['cleaned_price'], 
