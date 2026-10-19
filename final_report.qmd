@@ -1,0 +1,54 @@
+---
+title: "전자장비와기기 업종 주식 데이터 자동 수집 및 대시보드 리포트 시스템"
+subtitle: "GitHub Actions 기반 데이터 파이프라인 구축 및 학기말 최종 보고서"
+author: "작성자 이름"
+date: "2026-10-19"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "목차"
+    code-fold: true
+    theme: cosmo
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+---
+
+## 1. 프로젝트 개요 및 목적
+
+본 프로젝트는 GitHub Actions와 Python을 활용하여 '전자장비와기기' 업종의 주식 확장 지표 데이터를 매일 자동으로 수집하고, 수집된 데이터를 바탕으로 분석, 시각화, 마크다운 리포트 생성 및 저장소 자동 반영까지 수행하는 완전히 자동화된 파이프라인 구축을 목표로 합니다.
+
+### 주요 특징
+- **수집과 분석 워크플로의 분리**: `collect.yml`(매일 자동 수집)과 `report.yml`(수집 성공 시 분석·렌더링·커밋)로 분리하여 안정적인 파이프라인 운영
+- **GitHub 저장소의 대시보드화**: 정적 마크다운(`.md`)과 차트 이미지(`.png`)를 GitHub 저장소에 자동 커밋함으로써 저장소 자체가 일일 대시보드 역할을 수행
+- **재현성 높은 보고서 체계**: Quarto(`.qmd`)를 도입하여 데이터, 코드, 해석을 하나의 문서로 통합 관리하고 재현성을 확보
+
+---
+
+## 2. 시스템 아키텍처 및 워크플로
+
+시스템은 크게 두 개의 GitHub Actions 워크플로로 나누어져 있습니다.
+
+---
+
+## 3. 데이터 수집 및 검증
+
+매일 수집되는 주식 데이터는 `data/` 디렉토리에 일자별 CSV 형태로 저장되며, 데이터의 무결성을 보장하기 위해 `stock_validator.py`를 통한 자동 검증 단계를 거칩니다.
+
+### 수집 데이터 예시 확인
+```python
+import pandas as pd
+import glob
+import os
+
+# 가장 최근 수집된 CSV 파일 읽기
+csv_files = glob.glob('../data/*.csv')
+if csv_files:
+    latest_file = max(csv_files, key=os.path.getmtime)
+    df = pd.read_csv(latest_file)
+    print(f"최신 데이터 파일: {os.path.basename(latest_file)}")
+    print(df.head())
+else:
+    print("수집된 데이터 파일이 존재하지 않습니다.")
