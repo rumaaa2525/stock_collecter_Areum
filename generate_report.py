@@ -5,13 +5,15 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# 한글 폰트 설정
-plt.rcParams['font.family'] = 'DejaVu Sans'
-plt.rcParams['axes.unicode_minus'] = False
+# ==========================================
+# 한글 폰트 설정 (GitHub Actions 리눅스 나눔 폰트 연동)
+# ==========================================
+plt.rcParams['font.family'] = 'NanumGothic'
+plt.rcParams['axes.unicode_minus'] = False  # 그래프 마이너스 기호 깨짐 방지
 
 def generate_daily_report():
-    # 실제 수집된 폴더 이름인 '전자장비와기기'로 지정
-    industry = "전자부품" # 폴더명이 '전자장비와기기'라면 아래 줄을 수정하세요
+    # 수집된 데이터가 저장된 폴더 경로 (기존 설정에 맞춤)
+    industry = "전자부품"
     data_dir = Path("data") / "전자장비와기기"
     
     if not data_dir.exists():
@@ -25,38 +27,36 @@ def generate_daily_report():
         return
 
     latest_csv = csv_files[-1]
-    trade_date = latest_csv.stem  # 파일 이름(YYYY-MM-DD)
+    trade_date = latest_csv.stem  # 파일 이름(YYYY-MM-DD)이 거래일
     
     df = pd.read_csv(latest_csv)
     print(f"분석 대상 데이터: {latest_csv}")
-    print(df.columns)  # 컬럼 확인용 출력
 
-    # reports 폴더 강제 생성 (파일이 없어도 폴더가 무조건 생성되도록 보장)
+    # reports 폴더 생성
     report_dir = Path("reports")
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. 정적 시각화 그래프 생성
+    # 1. 정적 시각화 그래프 생성 (나눔 폰트 적용)
     fig, ax = plt.subplots(figsize=(10, 5))
     
-    # 컬럼명에 맞춰 현재가 필드 지정
+    # 컬럼명 유연하게 매칭
     price_col = "현재가(종가)" if "현재가(종가)" in df.columns else "현재가"
     name_col = "종목명" if "종목명" in df.columns else df.columns[0]
 
     if name_col in df.columns and price_col in df.columns:
-        # 숫자로 변환
         prices = pd.to_numeric(df[price_col].astype(str).str.replace(",", ""), errors="coerce")
         ax.bar(df[name_col], prices, color="skyblue")
-        ax.set_title(f"[{trade_date}] 전자장비와기기 주요 종목 현재가 현황")
-        ax.set_ylabel("현재가 (원)")
-        plt.xticks(rotation=45)
+        ax.set_title(f"[{trade_date}] 전자장비와기기 주요 종목 현재가 현황", fontsize=14)
+        ax.set_ylabel("현재가 (원)", fontsize=12)
+        plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
 
     chart_path = report_dir / f"chart_{trade_date}.png"
-    fig.savefig(chart_path)
+    fig.savefig(chart_path, dpi=150)
     plt.close(fig)
     print(f"차트 생성 완료: {chart_path}")
 
-    # 2. 마크다운 보고서 작성
+    # 2. 마크다운 보고서(Markdown Report) 작성
     md_path = report_dir / f"report_{trade_date}.md"
     
     md_content = f"# [{trade_date}] 전자장비와기기 업종 일일 분석 보고서\n\n"
