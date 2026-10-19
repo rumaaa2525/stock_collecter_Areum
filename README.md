@@ -1,12 +1,7 @@
 # stock_collecter_Areum
-# 📈 자동화 주식 데이터 수집 및 인터랙티브 대시보드 (전자장비와기기 업종)
+# 📈 자동화 주식 데이터 수집 및 시각화 리포트 (전자장비와기기 업종)
 
-GitHub Actions와 Quarto, Plotly를 활용하여 매일 정해진 시간에 '전자장비와기기' 업종의 주식 확장 지표를 자동으로 수집하고, 이를 인터랙티브 대시보드로 시각화하여 배포하는 프로젝트입니다.
-
----
-
-## 🔗 대시보드 바로가기
-- **배포 주소**: [https://rumaaa2525.github.io/stock_collecter_Areum/](https://rumaaa2525.github.io/stock_collecter_Areum/)
+GitHub Actions와 Python(Plotly, Matplotlib)을 활용하여 매일 정해진 시간에 '전자장비와기기' 업종의 주식 확장 지표를 자동으로 수집하고, 마크다운 리포트와 시각화 차트를 생성하여 관리하는 프로젝트입니다.
 
 ---
 
@@ -16,7 +11,8 @@ GitHub Actions와 Quarto, Plotly를 활용하여 매일 정해진 시간에 '전
 - **수집 업종**: 전자장비와기기
 - **수집 주기**: 매일 1회 자동 수집 (GitHub Actions 사용)
 - **저장 위치**: `data/전자장비와기기/YYYY-MM-DD.csv`
-- **수집 기간**: [예: 2026-10-01 ~ 진행 중]
+- **리포트 및 차트 저장 위치**: `reports/`
+- **수집 기간**: [2026-10-01 ~ 진행 중]
 - **데이터 출처**: 네이버 모바일 증권 API (`m.stock.naver.com`)
 
 ### 2) 수집 종목 목록 (총 21개 종목)
@@ -69,7 +65,7 @@ GitHub Actions와 Quarto, Plotly를 활용하여 매일 정해진 시간에 '전
 - **최초 구축**: 네이버 모바일 API 기반 주식 데이터 수집 파이프라인 구축.
 - **자동화 적용**: GitHub Actions를 통한 일일 데이터 수집 및 이메일 리포트 발송 설정.
 - **폰트 문제 해결**: 우분투 실행 환경(`fonts-nanum`) 및 Matplotlib 한글 폰트 로딩 적용.
-- **인터랙티브 대시보드 구축**: Quarto + Plotly 기반 대시보드 생성 및 GitHub Pages 자동 배포 연동.
+- **시각화 고도화**: 전체 현황 차트 외 상하위 집중 비교 차트 및 트리맵 시각화 추가.
 
 ---
 
@@ -77,6 +73,6 @@ GitHub Actions와 Quarto, Plotly를 활용하여 매일 정해진 시간에 '전
 
 만약 네이버 모바일 사이트 개편이나 API 구조 변경으로 크롤러가 정상 작동하지 않을 경우 아래 절차로 해결합니다:
 
-1. **에러 원인 파악**: GitHub Actions 실행 탭(`Actions` -> `run-report` 로그)에서 API 응답 코드 또는 JSON 파싱 오류 확인.
+1. **에러 원인 파악**: GitHub Actions 실행 탭(`Actions` -> 로그)에서 API 응답 코드 또는 JSON 파싱 오류 확인.
 2. **코드 수정**: `collect_and_validate_stocks()` 내 네이버 API 경로(`API = "https://m.stock.naver.com/api/stock"`) 또는 파싱 구조 수정.
 3. **해결 방법 공유**: 고친 로직과 해결 방법은 수업 공용 게시판/단톡방에 즉시 공유.
