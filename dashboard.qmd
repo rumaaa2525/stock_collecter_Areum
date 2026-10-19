@@ -1,6 +1,6 @@
 ---
 title: "전자장비와기기 업종 일일 대시보드"
-author: "Stock Collector Areum"
+author: "Areum"
 format: 
   dashboard:
     theme: yeti
