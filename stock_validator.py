@@ -9,6 +9,32 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import requests
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm  # 폰트 관리 모듈
+
+# ==========================================
+# 한글 폰트 설정 (GitHub 업로드 폰트 직접 연동)
+# ==========================================
+font_path = "NanumGothic.otf" 
+
+if os.path.exists(font_path):
+    # 폰트 매니저에 파일 직접 등록
+    fm.fontManager.addfont(font_path)
+    font_prop = fm.FontProperties(fname=font_path)
+    font_name = font_prop.get_name()
+    
+    # Matplotlib 전역 폰트 설정
+    plt.rcParams['font.family'] = font_name
+    print(f"[정보] 커스텀 폰트 로드 성공: {font_name} ({font_path})")
+else:
+    # 폰트 파일이 없을 경우 시스템 기본 폰트로 폴백 시도
+    print(f"[경고] 지정한 경로에 폰트 파일이 없습니다({font_path}). 시스템 기본 폰트를 사용합니다.")
+    plt.rcParams['font.family'] = 'NanumGothic'
+
+plt.rcParams['axes.unicode_minus'] = False  # 그래프 마이너스 기호 깨짐 방지
+
 
 # ===================== 네이버 API 관련 설정 =====================
 API = "https://m.stock.naver.com/api/stock"
@@ -123,7 +149,7 @@ def collect_and_validate_stocks():
         except Exception as e:
             errors.append(f"{name}({code}) 수집 실패: {e}")
 
-    # 4. 결과 데이터프레임 생성 및 날짜별 폴더 구조로 CSV 저장 (가이드 반영: data/업종/YYYY-MM-DD.csv)
+    # 4. 결과 데이터프레임 생성 및 날짜별 폴더 구조로 CSV 저장
     df_result = pd.DataFrame(data_list)
     
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -203,4 +229,3 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"[메일 발송 실패] 사유: {e}")
-
