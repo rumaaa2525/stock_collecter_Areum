@@ -61,7 +61,8 @@ def generate_daily_report():
         )
             
         plt.tight_layout()
-        chart_path = report_dir / f"chart_{trade_date}.png"
+        chart_filename = f"chart_{trade_date}.png"
+        chart_path = report_dir / chart_filename
         fig.savefig(chart_path, dpi=150)
         plt.close(fig)
         print(f"기본 차트 생성 완료: {chart_path}")
@@ -87,7 +88,8 @@ def generate_daily_report():
         axes[1].set_xlabel("현재가 (원)", fontsize=11)
 
         plt.tight_layout()
-        top_bottom_chart_path = report_dir / f"top_bottom_chart_{trade_date}.png"
+        top_bottom_filename = f"top_bottom_chart_{trade_date}.png"
+        top_bottom_chart_path = report_dir / top_bottom_filename
         fig.savefig(top_bottom_chart_path, dpi=150)
         plt.close(fig)
         print(f"상하위 비교 차트 생성 완료: {top_bottom_chart_path}")
@@ -111,34 +113,39 @@ def generate_daily_report():
             print(f"[경고] 트리맵 생성 중 오류 발생: {e}")
 
         plt.tight_layout()
-        treemap_path = report_dir / f"treemap_{trade_date}.png"
+        treemap_filename = f"treemap_{trade_date}.png"
+        treemap_path = report_dir / treemap_filename
         fig.savefig(treemap_path, dpi=150)
         plt.close(fig)
         print(f"트리맵 차트 생성 완료: {treemap_path}")
 
     # ==========================================
-    # 4. 마크다운 보고서(Markdown Report) 작성
+    # 4. 마크다운 대시보드 리포트 작성
     # ==========================================
     md_path = report_dir / f"report_{trade_date}.md"
     
-    md_content = f"# [{trade_date}] 전자장비와기기 업종 일일 분석 보고서\n\n"
-    md_content += f"수집된 종목 수: **{len(df)}개**\n\n"
+    md_content = f"# [{trade_date}] 전자장비와기기 업종 일일 대시보드 보고서\n\n"
+    md_content += f"> 수집된 총 종목 수: **{len(df)}개** | 데이터 기준일: **{trade_date}**\n\n"
     
-    md_content += "## 📊 종목별 요약 테이블\n\n"
+    md_content += "---\n\n"
+    md_content += "## 📊 대시보드 시각화 요약\n\n"
+    
+    md_content += f"### 1. 전체 종목 현재가 현황\n"
+    md_content += f"![일일 차트](./{chart_filename})\n\n"
+    
+    md_content += f"### 2. 상하위 집중 비교 분석 (Top / Bottom)\n"
+    md_content += f"![상하위 비교 차트](./{top_bottom_filename})\n\n"
+    
+    md_content += f"### 3. 종목별 규모 비중 (트리맵)\n"
+    md_content += f"![트리맵 차트](./{treemap_filename})\n\n"
+    
+    md_content += "---\n\n"
+    md_content += "## 📋 상세 종목 데이터 테이블\n\n"
     display_cols = [c for c in ["종목명", "종목코드", price_col, "등락률(%)", "거래량"] if c in df.columns]
     md_content += df[display_cols].to_markdown(index=False)
-    
-    md_content += "\n\n## 📈 시각화 차트 목록\n\n"
-    md_content += f"### 1. 전체 종목 현재가 현황\n"
-    md_content += f"![일일 차트](./chart_{trade_date}.png)\n\n"
-    
-    md_content += f"### 2. 상하위 집중 비교 차트 (Top / Bottom)\n"
-    md_content += f"![상하위 비교 차트](./top_bottom_chart_{trade_date}.png)\n\n"
-    md_content += f"### 3. 종목별 규모 비중 (트리맵)\n"
-    md_content += f"![트리맵 차트](./treemap_{trade_date}.png)\n"
 
     md_path.write_text(md_content, encoding="utf-8")
-    print(f"보고서 생성 완료: {md_path}")
+    print(f"대시보드 보고서 생성 완료: {md_path}")
 
 if __name__ == "__main__":
     generate_daily_report()
