@@ -1,0 +1,31 @@
+name: daily_stock
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-5'  
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt
+
+      - run: python stock_validator.py
+        env:
+          # GitHub Secrets 이름과 일치하도록 수정
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stock-csv
+          # 파이썬 코드에서 저장하는 상세 CSV 파일명과 일치시킴
+          path: electronic_equipment_multi_detailed.csv
