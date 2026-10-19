@@ -42,3 +42,79 @@ if not df.empty and change_col:
         df[change_col].astype(str).str.replace("%", "").str.replace("+", "").str.replace(",", ""), 
         errors="coerce"
     )
+
+#| content: valuebox
+#| title: "데이터 기준일"
+dict(
+    icon = "calendar-event",
+    color = "secondary",
+    value = trade_date
+)
+
+#| content: valuebox
+#| title: "총 수집 종목 수"
+dict(
+    icon = "building",
+    color = "light",
+    value = f"{len(df)}개"
+)
+
+#| content: valuebox
+#| title: "업종 평균 등락률"
+avg_change = df['cleaned_change'].mean() if not df.empty and 'cleaned_change' in df.columns else 0.0
+avg_change = 0.0 if pd.isna(avg_change) else avg_change
+dict(
+    icon = "percent",
+    color = "success" if avg_change >= 0 else "danger",
+    value = f"{avg_change:+.2f}%"
+)
+
+#| title: "전체 종목 현재가 현황"
+#| padding: 0
+if not df.empty and 'cleaned_price' in df.columns:
+    df_sorted = df.dropna(subset=['cleaned_price']).sort_values(by='cleaned_price', ascending=False).reset_index(drop=True)
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.bar(df_sorted[name_col], df_sorted['cleaned_price'], color="skyblue")
+    ax.set_ylabel("현재가 (원)")
+    plt.xticks(rotation=45, ha="right", fontsize=9)
+    plt.tight_layout()
+    fig
+    plt.close(fig)
+
+#| title: "종목별 등락률(%) 현황"
+if not df.empty and 'cleaned_change' in df.columns:
+    df_change = df.dropna(subset=['cleaned_change']).sort_values(by='cleaned_change', ascending=True)
+    colors = ['#d9534f' if x > 0 else ('#5bc0de' if x < 0 else '#999999') for x in df_change['cleaned_change']]
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.barh(df_change[name_col], df_change['cleaned_change'], color=colors)
+    ax.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+    ax.set_xlabel("등락률 (%)")
+    plt.tight_layout()
+    fig
+    plt.close(fig)
+
+#| title: "상세 종목 데이터 테이블"
+display_cols = [c for c in ["종목명", "종목코드", price_col, "등락률(%)", "거래량"] if c in df.columns]
+if not df.empty:
+    from IPython.display import HTML
+    HTML(df[display_cols].to_html(index=False, classes="table table-striped table-hover align-middle", border=0))
+
+#| title: "종목별 규모 비중 (트리맵)"
+if not df.empty and 'cleaned_price' in df.columns:
+    df_clean = df.dropna(subset=['cleaned_price']).sort_values(by='cleaned_price', ascending=False)
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    try:
+        labels = [f"{row[name_col]}\n({int(row['cleaned_price']):,}원)" for _, row in df_clean.iterrows()]
+        squarify.plot(
+            sizes=df_clean['cleaned_price'], 
+            label=labels, 
+            alpha=0.7, 
+            ax=ax, 
+            text_kwargs={'fontsize': 8}
+        )
+        ax.axis('off')
+    except Exception as e:
+        ax.text(0.5, 0.5, f"트리맵 생성 오류: {e}", ha='center', va='center')
+    plt.tight_layout()
+    fig
+    plt.close(fig)
