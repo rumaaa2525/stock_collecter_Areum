@@ -4,6 +4,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from datetime import datetime
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import requests
@@ -57,7 +59,6 @@ def collect_and_validate_stocks():
     ]
 
     data_list = []
-    fin_rows = []
     errors = []
 
     for item in stocks:
@@ -66,7 +67,7 @@ def collect_and_validate_stocks():
 
         row = {"종목명": name, "종목코드": code}
         try:
-            # 네이버 모바일 API 호출 (기본 정보 + 통합 정보 + 재무 정보)
+            # 네이버 모바일 API 호출 (기본 정보 + 통합 정보)
             r_basic = SESSION.get(f"{API}/{code}/basic", timeout=15)
             r_integ = SESSION.get(f"{API}/{code}/integration", timeout=15)
             
@@ -78,9 +79,7 @@ def collect_and_validate_stocks():
 
             # 기본 가격 및 등락 정보
             current_close = basic.get("closePrice")
-            prev_close = basic.get("previousClosePrice")
             
-            # 숫자형 변환 처리 (쉼표 제거 등)
             def clean_num(val):
                 if val is None:
                     return None
@@ -102,7 +101,6 @@ def collect_and_validate_stocks():
             for it in integ.get("totalInfos", []):
                 key = it.get("key")
                 val = it.get("value")
-                # 보기 편한 주요 키 매칭 및 저장
                 if key in ["openPrice", "시가"]:
                     row["시가"] = clean_num(val)
                 elif key in ["highPrice", "고가"]:
@@ -114,11 +112,10 @@ def collect_and_validate_stocks():
                 elif key in ["accumulatedTradingValue", "거래대금"]:
                     row["거래대금"] = clean_num(val)
                 elif key in ["marketCapitalization", "시가총액"]:
-                    row["시가총액"] = val  # 원본 문자열 또는 숫자 유지
+                    row["시가총액"] = val
                 elif key in ["foreignRatio", "외국인비율"]:
                     row["외국인비율"] = val
                 
-                # 그 외 모든 지표도 동적으로 담기
                 row[key] = val
 
             data_list.append(row)
@@ -126,9 +123,16 @@ def collect_and_validate_stocks():
         except Exception as e:
             errors.append(f"{name}({code}) 수집 실패: {e}")
 
-    # 4. 결과 데이터프레임 생성 및 CSV 저장
+    # 4. 결과 데이터프레임 생성 및 날짜별 폴더 구조로 CSV 저장 (가이드 반영: data/업종/YYYY-MM-DD.csv)
     df_result = pd.DataFrame(data_list)
-    csv_filename = "electronic_equipment_multi_detailed.csv"
+    
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    industry_name = "전자장비와기기"  # 업종 폴더 이름
+    
+    output_dir = Path("data") / industry_name
+    output_dir.mkdir(parents=True, exist_ok=True)  # 폴더가 없으면 자동 생성
+    
+    csv_filename = output_dir / f"{today_str}.csv"
     df_result.to_csv(csv_filename, index=False, encoding="utf-8-sig")
 
     # 5. 검증 체크리스트
@@ -138,7 +142,6 @@ def collect_and_validate_stocks():
         errors.append(f"수집 건수 불일치: 기대({expected_count}) != 실제({actual_count})")
 
     if not df_result.empty and "등락률(%)" in df_result.columns:
-        # 등락률 기준으로 상하한가(±30%) 초과 검증
         valid_df = df_result[df_result["등락률(%)"].notna()]
         if not valid_df.empty:
             invalid_changes = valid_df[abs(valid_df["등락률(%)"]) > 30]
@@ -153,7 +156,7 @@ def collect_and_validate_stocks():
         status_message = f"[정상] {actual_count}/{expected_count} 종목 상세 지표 수집 완료"
         is_error = False
 
-    return status_message, is_error, csv_filename
+    return status_message, is_error, str(csv_filename)
 
 
 # --- [실행부] 수집/검증 및 메일 발송 ---
@@ -177,7 +180,7 @@ if __name__ == "__main__":
         body = (
             "안녕하세요, 오늘의 주식 확장 지표 크롤링 및 검증 결과입니다.\n\n"
             f"상태: {result_msg}\n\n"
-            "시가총액, 외국인비율 및 상세 지표가 포함된 CSV 파일을 첨부합니다."
+            f"날짜별 저장 경로({attached_file})의 CSV 파일을 첨부합니다."
         )
         msg.attach(MIMEText(body, "plain"))
 
@@ -187,7 +190,8 @@ if __name__ == "__main__":
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(f.read())
             encoders.encode_base64(part)
-            part.add_header("Content-Disposition", f"attachment; filename={attached_file}")
+            # 첨부파일 이름 설정
+            part.add_header("Content-Disposition", f"attachment; filename={Path(attached_file).name}")
             msg.attach(part)
             print(f"[{attached_file}] 파일이 메일에 첨부되었습니다.")
 
@@ -199,3 +203,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"[메일 발송 실패] 사유: {e}")
+
