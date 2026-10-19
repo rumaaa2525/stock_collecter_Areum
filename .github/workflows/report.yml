@@ -21,6 +21,16 @@ jobs:
 
       - run: pip install -r requirements.txt pandas matplotlib tabulate
 
+      # --- [추가 완료] 한글 깨짐 해결을 위한 나눔 폰트 설치 ---
+      - name: Install Korean Font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-nanum
+          sudo fc-cache -fv
+          # matplotlib의 폰트 캐시를 지워서 새로 설치된 폰트를 인식하게 함
+          rm -rf ~/.cache/matplotlib
+      # --------------------------------------------------
+
       # 분석 및 보고서 생성 스크립트 실행
       - run: python generate_report.py
 
@@ -30,5 +40,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/
-          git commit -m "Auto-generate daily report and charts: $(date +'%Y-%m-%d')" || exit 0
+          git commit -m "Auto-generate daily report and charts with Korean font: $(date +'%Y-%m-%d')" || exit 0
           git push
