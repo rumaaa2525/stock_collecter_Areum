@@ -1,0 +1,52 @@
+---
+title: "전자장비와기기 업종 주식 데이터 자동 수집 및 대시보드 시스템"
+author: "Areum"
+format: 
+  dashboard:
+    theme: yeti
+---
+
+```{python}
+#| tags: [parameters]
+
+# 다른 티커로 렌더링 시: quarto render dashboard.qmd -P ticker:AAPL
+ticker = "BA"
+
+import helpers
+stock = helpers.get_stock(ticker)
+data = helpers.get_data(stock)
+
+from IPython.display import Markdown
+Markdown("**{symbol}** --- {longName} --- [{website}]({website})"
+    .format(**stock.info))
+
+#| content: valuebox
+#| title: "Current Price"
+dict(
+    icon = "currency-dollar",
+    color = "secondary",
+    value = helpers.get_price(data)
+)
+
+#| content: valuebox
+#| title: "Change"
+change = helpers.get_change(data)
+dict(
+    value = change['amount'],
+    icon = change['icon'],
+    color = change['color']
+)
+
+#| content: valuebox
+#| title: "Percent Change"
+dict(
+    icon = "percent",
+    color = "light",
+    value = change['percent'],
+)
+
+#| title: Price History
+#| padding: 0
+helpers.make_candlestick_chart(data, ticker.upper())
+
+ohlc = helpers.make_OHLC_table(data)
