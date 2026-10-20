@@ -5,18 +5,18 @@
 
 | 1. 전체 종목 현재가 현황 | 2. 상하위 집중 비교 (Top/Bottom) |
 | :---: | :---: |
-| ![전체 현황](./reports/chart_2026-10-19.png) | ![상하위 비교](./reports/top_bottom_chart_2026-10-19.png) |
+| ![전체 현황](./reports/latest_chart.png) | ![상하위 비교](./reports/latest_top_bottom.png) |
 
 | 3. 종목별 등락률(%) 현황 | 4. 종목별 규모 비중 (트리맵) |
 | :---: | :---: |
-| ![등락률 현황](./reports/change_chart_2026-10-19.png) | ![트리맵](./reports/treemap_2026-10-19.png) |
+| ![등락률 현황](./reports/latest_change_chart.png) | ![트리맵](./reports/latest_treemap.png) |
 
 [📊 전체 마크다운 보고서 열기](./reports/) | [🚀 자동화 파이프라인 작동 현황](#-프로젝트-주요-특징-features)
 
 ---
 
 ## 🎯 프로젝트 소개 (Overview)
-GitHub Actions와 Python을 활용하여 매일 정해진 시간에 '전자장비와기기' 업종의 주식 확장 지표를 자동으로 수집하고, 대시보드형 마크다운 리포트와 분석 차트(`chart`, `top_bottom_chart`, `change_chart`, `treemap`)를 생성하여 관리하는 파이프라인 프로젝트입니다.
+GitHub Actions와 Python을 활용하여 매일 정해진 시간에 '전자장비와기기' 업종의 주식 확장 지표를 자동으로 수집하고, 대시보드형 마크다운 리포트와 분석 차트(`latest_chart`, `latest_top_bottom`, `latest_change_chart`, `latest_treemap`)를 생성하여 관리하는 파이프라인 프로젝트입니다.
 
 ---
 
