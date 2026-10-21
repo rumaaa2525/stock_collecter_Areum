@@ -52,14 +52,43 @@ if 'cleaned_price' in df.columns:
     plt.savefig(reports_dir / "latest_chart.png")
     plt.close(fig)
 
-# 5. 차트 2: 상하위 집중 비교 (Top/Bottom) (고정 파일명 저장)
-if 'cleaned_price' in df.columns and len(df_sorted) >= 5:
-    top_bottom = pd.concat([df_sorted.head(5), df_sorted.tail(5)])
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar(top_bottom[name_col], top_bottom['cleaned_price'], color="orange")
-    ax.set_ylabel("현재가 (원)")
-    ax.set_title("상위 및 하위 종목 비교")
-    plt.xticks(rotation=45, ha="right", fontsize=8)
+# 5. 차트 2: 전자장비와기기 업종 내 상승/하락 종목 비율 (투자 심리 현황)
+if 'change_rate' in df.columns and len(df) > 0:
+    # 상승, 보합, 하락 종목 수 집계
+    up_count = len(df[df['change_rate'] > 0])
+    flat_count = len(df[df['change_rate'] == 0])
+    down_count = len(df[df['change_rate'] < 0])
+    
+    fig, ax = plt.subplots(figsize=(10, 4))
+    categories = ['상승 종목', '보합', '하락 종목']
+    counts = [up_count, flat_count, down_count]
+    
+    # 한국 증시 표준 컬러 적용: 상승(빨간색), 보합(회색), 하락(파란색)
+    colors = ['#ff4d4d', '#b0b0b0', '#4d79ff']
+
+    bars = ax.barh(categories, counts, color=colors, height=0.5)
+    
+    # 타이틀 및 레이블 설정 (투자 확신을 줄 수 있는 직관적인 문구)
+    ax.set_title("전자장비와기기 업종 투자 심리 및 상승·하락 분포", fontsize=12, fontweight='bold', pad=15)
+    ax.set_xlabel("종목 수 (개)", fontsize=10)
+    
+    # X축 범례 여유 두기
+    max_count = max(counts) if max(counts) > 0 else 1
+    ax.set_xlim(0, max_count * 1.25)
+    
+    # 막대 오른쪽 끝에 실제 종목 개수 및 비율(%) 표시
+    total_stocks = len(df)
+    for bar in bars:
+        width = bar.get_width()
+        percentage = (width / total_stocks) * 100 if total_stocks > 0 else 0
+        ax.text(width + (max_count * 0.02), bar.get_y() + bar.get_height()/2, 
+                f'{int(width)}개 ({percentage:.1f}%)', 
+                va='center', ha='left', fontsize=10, fontweight='bold')
+
+    # 깔끔한 디자인을 위한 테두리 정리
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
     plt.tight_layout()
     plt.savefig(reports_dir / "latest_top_bottom.png")
     plt.close(fig)
