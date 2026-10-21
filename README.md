@@ -11,7 +11,7 @@
 | :---: | :---: |
 | ![등락률 현황](./reports/latest_change_chart.png) | ![트리맵](./reports/latest_treemap.png) |
 
-[📊 전체 마크다운 보고서 열기](./reports/) | [🚀 자동화 파이프라인 작동 현황](#-프로젝트-주요-특징-features)
+[ 전체 마크다운 보고서 열기](./reports/) | [ 자동화 파이프라인 작동 현황](#-프로젝트-주요-특징-features)
 
 ---
 
